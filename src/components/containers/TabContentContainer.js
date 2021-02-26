@@ -1,32 +1,28 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Alert, Share } from 'react-native'
 import { getArticles } from '../../service/api'
 import TabContent from '../Tabs/TabContent'
 
-class TabContentContainer extends Component {
-  state = {
-    articleData: {},
-    articles: [],
-    isLoading: true,
-    modalVisible: false,
-    source: this.props.source || 'bbc-news'
-  }
+const TabContentContainer = props => {
+  const { source } = props
+  const [newsSource] = useState(source)
+  const [articleData, setArticleData] = useState({})
+  const [articles, setArticles] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [modalVisible, setModalVisible] = useState(false)
 
-  // Lifecycle Methods
+  // Effects
 
-  componentDidMount() {
-    const { source } = this.state
-    this.fetchNews(source)
-  }
+  useEffect(() => {
+    fetchNews(newsSource)
+  })
 
   // API Call Functions
   fetchNews = async source => {
     getArticles(source).then(
       articles => {
-        this.setState({
-          articles: articles,
-          isLoading: false
-        })
+        setArticles(articles)
+        setIsLoading(false)
       },
       error => {
         Alert.alert('Error', `Something went wrong! ${error}`)
@@ -37,20 +33,13 @@ class TabContentContainer extends Component {
   // Handler Functions
 
   handleArticlePress = ({ title, url }) => {
-    this.setState({
-      modalVisible: true,
-      articleData: {
-        title,
-        url
-      }
-    })
+    setModalVisible(true)
+    setArticleData({ title, url })
   }
 
   handleArticleModalClose = () => {
-    this.setState({
-      modalVisible: false,
-      articleData: {}
-    })
+    setModalVisible(false)
+    setArticleData({})
   }
 
   handleArticleShare = (title, url) => {
@@ -68,20 +57,17 @@ class TabContentContainer extends Component {
     )
   }
 
-  render() {
-    const { articleData, articles, isLoading, modalVisible } = this.state
-    return (
-      <TabContent
-        articleData={articleData}
-        articles={articles}
-        isLoading={isLoading}
-        onArticlePress={this.handleArticlePress}
-        onArticleModalClose={this.handleArticleModalClose}
-        onArticleShare={this.handleArticleShare}
-        modalVisible={modalVisible}
-      />
-    )
-  }
+  return (
+    <TabContent
+      articleData={articleData}
+      articles={articles}
+      isLoading={isLoading}
+      onArticlePress={handleArticlePress}
+      onArticleModalClose={handleArticleModalClose}
+      onArticleShare={handleArticleShare}
+      modalVisible={modalVisible}
+    />
+  )
 }
 
 export default TabContentContainer
